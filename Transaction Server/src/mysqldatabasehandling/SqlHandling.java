@@ -1,6 +1,7 @@
 package mysqldatabasehandling;
 
 import java.sql.*;
+import logmanager.*;
 public class SqlHandling {
 	private static Connection con;
 	// MySql Connection method 
@@ -32,37 +33,53 @@ public class SqlHandling {
 					ResultSet rs2=stmt.executeQuery("select * from person where account_number="+id+";");
 					if(rs2.next()) {
 						name=rs2.getString("name");
-						String ResultStr=name+" "+temp;
+						String ResultStr=name+" "+temp+" "+"true";
 						return ResultStr;
+					}else {
+						return "a1 "+"a "+"false";
 					}
 				
+				}else {
+					return "a2 "+"a "+"false";
 				}
 				
+			}else {
+				return "a3 "+"a "+"false";
 			}
 			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return "a3 "+"a "+"false";
 		
 	}
 	//MySql Transaction Method
 	public static String transaction(String amount,String from,String to) {
 		try {
-			Statement stmt=con.createStatement();
-			ResultSet rsFrom=stmt.executeQuery("select * from account where account_number = "+from+" ;");
+			Statement stmtf=con.createStatement();
+			Statement stmtt=con.createStatement();
+			Integer newBalF;
+			ResultSet rsFrom=stmtf.executeQuery("select * from account where account_number = "+from+" ;");
 			if (rsFrom.next()) {
 				if(rsFrom.getInt("balance")  >= Integer.parseInt(amount)) {
-					Integer newBalF=rsFrom.getInt("balance")-Integer.parseInt(amount);
-					stmt.executeUpdate("update account set balance = "+newBalF+" where account_number= "+from+" ;");
-					ResultSet rsTo=stmt.executeQuery("select * from account where account_number="+to+";");
+					ResultSet rsTo=stmtt.executeQuery("select * from account where account_number="+to+";");
 					if (rsTo.next()) {
+						newBalF=rsFrom.getInt("balance")-Integer.parseInt(amount);
+						stmtf.executeUpdate("update account set balance = "+newBalF+" where account_number= "+from+" ;");
+						
 						Integer newBalT=rsTo.getInt("balance")+Integer.parseInt(amount);
-						stmt.executeUpdate("update account set balance = "+newBalT+" where account_number = "+to+" ;");
-						//Log part to be done!!
+						stmtt.executeUpdate("update account set balance = "+newBalT+" where account_number = "+to+" ;");
+						LogM.manager(from,to,amount);
+						return newBalF.toString()+" true";
 					}
-					return newBalF.toString();
+					else {
+						return "account_doesn't_exist "+"false";
+					}
+					
+				}
+				else {
+					return "balance_is_low "+"false";
 				}
 			}
 			
@@ -70,7 +87,7 @@ public class SqlHandling {
 			System.out.println("Error in Transation!");
 			System.out.println(e);
 		}
-		return null;
+		return "a "+"false";
 		
 	}
 	//MySql Refresh command

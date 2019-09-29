@@ -103,10 +103,7 @@ public class ClientHandler extends Thread{
 				SqlHandling.mysqlconnect("root", "Root123");
 				info=SqlHandling.logincheck(LogID,Pass);
 				SqlHandling.mysqldissconnect();
-			}
-			// write on output stream based on the 
-			// answer from the client
-      
+			}      
 			toreturn=info;
 			dos.writeUTF(toreturn);
 		} catch (Exception e) {
